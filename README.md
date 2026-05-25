@@ -140,13 +140,3 @@ android/app/google-services.json
 
 Khong doi package name/applicationId neu khong can thiet.
 
-## Luu y bao mat
-
-- Khong commit `backend/.env`.
-- Khong dua payOS secret hoac Stripe secret vao Flutter/Dart.
-- Khong commit service account Firebase Admin.
-- Neu key demo da tung chia se cong khai, nen rotate key sau khi nop/demo.
-
-## Repo
-
-- GitHub: https://github.com/thptltkk55-max/bookingtravelticketapp.git
