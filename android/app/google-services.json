@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "563687295475",
+    "project_id": "travel-booking-app-5ce66",
+    "storage_bucket": "travel-booking-app-5ce66.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:563687295475:android:2b215b937d38fcdd3e6a86",
+        "android_client_info": {
+          "package_name": "com.example.doan_clean_achitec"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbRw2yTjV0sucXlVkB4-g5CfvYpuCi6G4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

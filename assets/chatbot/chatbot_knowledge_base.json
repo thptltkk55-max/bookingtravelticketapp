@@ -1,0 +1,187 @@
+{
+  "project": "Flutter Travel Booking GetX",
+  "language": "vi",
+  "scope": {
+    "allowedTopics": [
+      "tour",
+      "điểm đến",
+      "đặt tour",
+      "booking",
+      "thanh toán",
+      "payOS",
+      "Stripe",
+      "Visa",
+      "lịch sử booking",
+      "yêu thích",
+      "Firebase",
+      "Firestore"
+    ],
+    "outOfScopeAnswer": "Mình chỉ hỗ trợ các câu hỏi về app Travel Booking như tour, đặt tour, thanh toán, lịch sử booking, yêu thích và dữ liệu Firebase."
+  },
+  "cities": [
+    {
+      "id": "city_01",
+      "name": "Đà Lạt",
+      "description": "Thành phố ngàn hoa, khí hậu mát mẻ, phù hợp nghỉ dưỡng và check-in."
+    },
+    {
+      "id": "city_02",
+      "name": "Đà Nẵng",
+      "description": "Thành phố biển hiện đại với cầu Rồng, biển Mỹ Khê và Bà Nà Hills."
+    },
+    {
+      "id": "city_03",
+      "name": "Nha Trang",
+      "description": "Điểm đến biển đảo, hải sản và hoạt động vui chơi ven biển."
+    },
+    {
+      "id": "city_04",
+      "name": "Phú Quốc",
+      "description": "Đảo ngọc với biển xanh, resort và nhiều điểm nghỉ dưỡng."
+    },
+    {
+      "id": "city_05",
+      "name": "Hội An",
+      "description": "Phố cổ yên bình, nổi bật với đèn lồng và văn hóa truyền thống."
+    },
+    {
+      "id": "city_06",
+      "name": "Hà Nội",
+      "description": "Thủ đô nghìn năm văn hiến với phố cổ, hồ Gươm và ẩm thực đặc trưng."
+    },
+    {
+      "id": "city_07",
+      "name": "Huế",
+      "description": "Cố đô với Đại Nội, lăng tẩm, sông Hương và ẩm thực cung đình."
+    },
+    {
+      "id": "city_08",
+      "name": "Sapa",
+      "description": "Thị trấn vùng cao với ruộng bậc thang, Fansipan và bản làng dân tộc."
+    }
+  ],
+  "tours": [
+    {
+      "id": "tour_01",
+      "name": "Tour Đà Lạt 3 ngày 2 đêm",
+      "cityId": "city_01",
+      "location": "Đà Lạt, Lâm Đồng",
+      "duration": "3 ngày 2 đêm",
+      "price": 2500000,
+      "image": "assets/images/x2/des1.jpg",
+      "description": "Khám phá hồ Xuân Hương, chợ đêm, thung lũng Tình Yêu và các điểm check-in nổi tiếng.",
+      "payment": "payOS QR, banking hoặc Visa test mode qua Stripe"
+    },
+    {
+      "id": "tour_02",
+      "name": "Tour Đà Nẵng - Hội An 4 ngày 3 đêm",
+      "cityId": "city_02",
+      "location": "Đà Nẵng",
+      "duration": "4 ngày 3 đêm",
+      "price": 3200000,
+      "image": "assets/images/x2/des4.jpg",
+      "description": "Trải nghiệm biển Mỹ Khê, cầu Rồng, Bà Nà Hills và phố cổ Hội An về đêm.",
+      "payment": "payOS QR, banking hoặc Visa test mode qua Stripe"
+    },
+    {
+      "id": "tour_03",
+      "name": "Tour Phú Quốc nghỉ dưỡng 3 ngày 2 đêm",
+      "cityId": "city_04",
+      "location": "Phú Quốc, Kiên Giang",
+      "duration": "3 ngày 2 đêm",
+      "price": 4500000,
+      "image": "assets/images/x2/des7.jpg",
+      "description": "Nghỉ dưỡng tại đảo ngọc, tham quan biển xanh, cáp treo Hòn Thơm và thưởng thức hải sản.",
+      "payment": "payOS QR, banking hoặc Visa test mode qua Stripe"
+    },
+    {
+      "id": "tour_04",
+      "name": "Tour Nha Trang biển đảo 3 ngày 2 đêm",
+      "cityId": "city_03",
+      "location": "Nha Trang, Khánh Hòa",
+      "duration": "3 ngày 2 đêm",
+      "price": 2900000,
+      "image": "assets/images/x2/des2.png",
+      "description": "Khám phá biển đảo Nha Trang, VinWonders, chợ đêm và các món hải sản đặc trưng.",
+      "payment": "payOS QR, banking hoặc Visa test mode qua Stripe"
+    },
+    {
+      "id": "tour_05",
+      "name": "Tour Hội An 2 ngày 1 đêm",
+      "cityId": "city_05",
+      "location": "Hội An, Quảng Nam",
+      "duration": "2 ngày 1 đêm",
+      "price": 1800000,
+      "image": "assets/images/x2/des5.jpg",
+      "description": "Dạo phố cổ Hội An, thả đèn hoa đăng, thưởng thức ẩm thực địa phương và tham quan làng nghề.",
+      "payment": "payOS QR, banking hoặc Visa test mode qua Stripe"
+    },
+    {
+      "id": "tour_06",
+      "name": "Tour Hà Nội - Ninh Bình 3 ngày 2 đêm",
+      "cityId": "city_06",
+      "location": "Hà Nội",
+      "duration": "3 ngày 2 đêm",
+      "price": 3100000,
+      "image": "assets/images/x2/des8.jpg",
+      "description": "Tham quan phố cổ Hà Nội, hồ Gươm, Tràng An, Bái Đính và cảnh đẹp non nước Ninh Bình.",
+      "payment": "payOS QR, banking hoặc Visa test mode qua Stripe"
+    },
+    {
+      "id": "tour_07",
+      "name": "Tour Huế di sản 2 ngày 1 đêm",
+      "cityId": "city_07",
+      "location": "Huế, Thừa Thiên Huế",
+      "duration": "2 ngày 1 đêm",
+      "price": 1900000,
+      "image": "assets/images/x2/des3.jpg",
+      "description": "Tham quan Đại Nội, lăng vua, chùa Thiên Mụ và thưởng thức ẩm thực cung đình Huế.",
+      "payment": "payOS QR, banking hoặc Visa test mode qua Stripe"
+    },
+    {
+      "id": "tour_08",
+      "name": "Tour Sapa - Fansipan 3 ngày 2 đêm",
+      "cityId": "city_08",
+      "location": "Sapa, Lào Cai",
+      "duration": "3 ngày 2 đêm",
+      "price": 3600000,
+      "image": "assets/images/x2/des6.jpg",
+      "description": "Khám phá Sapa, bản Cát Cát, núi Hàm Rồng, ruộng bậc thang và chinh phục Fansipan.",
+      "payment": "payOS QR, banking hoặc Visa test mode qua Stripe"
+    }
+  ],
+  "faq": [
+    {
+      "question": "Làm sao để đặt tour?",
+      "answer": "Bạn mở chi tiết tour, bấm Book Tour, chọn số người, kiểm tra tổng tiền rồi chọn phương thức thanh toán."
+    },
+    {
+      "question": "App thanh toán bằng gì?",
+      "answer": "App hỗ trợ QR/banking qua payOS và Visa test mode qua Stripe nếu backend local đã chạy."
+    },
+    {
+      "question": "Vì sao không kết nối được cổng thanh toán?",
+      "answer": "Hãy kiểm tra backend local, IP LAN trong Flutter, firewall Windows và endpoint /health của backend."
+    },
+    {
+      "question": "Xem lịch sử đặt tour ở đâu?",
+      "answer": "Bạn mở tab History để xem booking đang chờ, sắp diễn ra, đang diễn ra, đã hoàn thành hoặc đã hủy."
+    },
+    {
+      "question": "Yêu thích tour lưu ở đâu?",
+      "answer": "Tour yêu thích lưu trong userModel/{userDocId}/favouriteTour, còn city yêu thích lưu trong userModel/{userDocId}/favourite."
+    }
+  ],
+  "firestoreCollections": [
+    "cityModel",
+    "tourModel",
+    "userModel",
+    "historyModel",
+    "favourite",
+    "favouriteTour",
+    "videos",
+    "comments",
+    "searchTour",
+    "pushNotification"
+  ]
+}

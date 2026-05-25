@@ -1,0 +1,11 @@
+{
+  "name": "flutter-booking-travel-getx-tools",
+  "private": true,
+  "scripts": {
+    "seed:firestore:dry": "node tools/import_firestore_seed.js --dry-run",
+    "seed:firestore": "node tools/import_firestore_seed.js --yes"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  }
+}

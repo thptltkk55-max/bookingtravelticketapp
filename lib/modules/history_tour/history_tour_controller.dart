@@ -1,0 +1,423 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:doan_clean_achitec/models/history/history_model.dart';
+import 'package:doan_clean_achitec/modules/history_tour/tour_history_detail/preytty_qr_code.dart';
+import 'package:doan_clean_achitec/models/tour/tour_model.dart';
+import 'package:doan_clean_achitec/modules/home/home.dart';
+import 'package:doan_clean_achitec/shared/constants/colors.dart';
+import 'package:doan_clean_achitec/shared/constants/string_constants.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:pretty_qr_code/pretty_qr_code.dart';
+import 'package:rive/rive.dart';
+import 'dart:ui' as ui;
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+
+class HistoryTourController extends GetxController {
+  final _db = FirebaseFirestore.instance;
+
+  HomeController homeController = Get.find();
+
+  final getAllListHistory = Rxn<List<TourModel>>([]);
+  final getListHisWaiting = Rxn<List<TourModel>>([]);
+  final getListUpComing = Rxn<List<TourModel>>([]);
+  final getListHisHappenning = Rxn<List<TourModel>>([]);
+  final getListHisCompleted = Rxn<List<TourModel>>([]);
+  final getListHisCancel = Rxn<List<TourModel>>([]);
+
+  final getAllListHistoryToDate = Rxn<List<HistoryModel>>([]);
+  final getListHisWaitingToDate = Rxn<List<HistoryModel>>([]);
+  final getListHisUpComingToDate = Rxn<List<HistoryModel>>([]);
+  final getListHisHappenningToDate = Rxn<List<HistoryModel>>([]);
+  final getListHisCompletedToDate = Rxn<List<HistoryModel>>([]);
+  final getListHisCancelToDate = Rxn<List<HistoryModel>>([]);
+
+  final listTourCurrentTabs = Rxn<List<TourModel>>([]);
+  final listTourCurrentTabsToDate = Rxn<List<HistoryModel>>([]);
+
+  Rx<bool> isShowLoading = true.obs;
+  SMITrigger? check;
+  SMITrigger? error;
+  SMITrigger? reset;
+
+  StateMachineController getRiveController(Artboard artboard) {
+    StateMachineController? controller =
+        StateMachineController.fromArtboard(artboard, "State Machine 1");
+    artboard.addController(controller!);
+    return controller;
+  }
+
+  late QrImage qrImage;
+  late PrettyQrDecoration decoration;
+
+  @override
+  void onInit() {
+    super.onInit();
+    // ignore: non_const_call_to_literal_constructor
+    decoration = PrettyQrDecoration(
+      // ignore: non_const_call_to_literal_constructor
+      shape: PrettyQrSmoothSymbol(color: ColorConstants.green),
+      // ignore: invalid_use_of_visible_for_testing_member
+      image: PrettyQrSettings.kDefaultPrettyQrDecorationImage,
+    );
+    getAllTourModelData();
+  }
+
+// Get All Tour
+
+  Future<void> getAllTourModelData() async {
+    String userId = homeController.userModel.value?.id ?? "";
+
+    getAllListHistory.value?.clear();
+    getListHisWaiting.value?.clear();
+    getListUpComing.value?.clear();
+    getListHisHappenning.value?.clear();
+    getListHisCompleted.value?.clear();
+    getListHisCancel.value?.clear();
+    getAllListHistoryToDate.value?.clear();
+    getListHisWaitingToDate.value?.clear();
+    getListHisUpComingToDate.value?.clear();
+    getListHisHappenningToDate.value?.clear();
+    getListHisCompletedToDate.value?.clear();
+    getListHisCancelToDate.value?.clear();
+
+    getAllListHistory.value = await getTourHistory(userId);
+    getListHisWaiting.value = await getTourHistoryByStatus(userId, 'waiting');
+    await getTourHistoryByStatus(userId, 'done');
+    getListHisCancel.value = await getTourHistoryByStatus(userId, 'canceled');
+  }
+
+  Future<List<TourModel>?> getTourHistory(String userId) async {
+    final snapShot = await _db
+        .collection('historyModel')
+        .where('idUser', isEqualTo: userId)
+        .get();
+
+    final listTourHistoryData =
+        snapShot.docs.map((doc) => HistoryModel.fromJson(doc)).toList();
+    final pairs = await _buildHistoryTourPairs(listTourHistoryData);
+    getAllListHistoryToDate.value = pairs.histories;
+
+    return pairs.tours;
+  }
+
+  Future<HistoryModel> getHistoryByIdTour(String idTour) async {
+    final snapShot = await _db
+        .collection('historyModel')
+        .where('idUser', isEqualTo: homeController.userModel.value?.id ?? "")
+        .where('idTour', isEqualTo: idTour)
+        .get();
+
+    if (snapShot.docs.length == 1) {
+      final historyModelByIdTour = HistoryModel.fromJson(snapShot.docs.single);
+      return historyModelByIdTour;
+    } else if (snapShot.docs.isEmpty) {
+      debugPrint('[HISTORY][WARN] Missing history for idTour=$idTour');
+      return HistoryModel(isActive: true);
+    } else {
+      return HistoryModel.fromJson(snapShot.docs.first);
+    }
+  }
+
+  Future<List<TourModel>?> getTourHistoryByStatus(
+      String userId, String status) async {
+    final snapShot = await _db
+        .collection('historyModel')
+        .where('idUser', isEqualTo: userId)
+        .where('status', isEqualTo: status)
+        .get();
+
+    final listTourHistoryData =
+        snapShot.docs.map((doc) => HistoryModel.fromJson(doc)).toList();
+    List<HistoryModel> listTourHistorySort =
+        sortToursHistoryByBookingDate(listTourHistoryData);
+    final pairs = await _buildHistoryTourPairs(listTourHistorySort);
+    listTourHistorySort = pairs.histories;
+    final listTourModel = pairs.tours;
+
+    if (status == 'waiting') {
+      getListHisWaitingToDate.value?.clear();
+      getListHisWaitingToDate.value = listTourHistorySort;
+    } else if (status == 'done') {
+      getListHisUpComingToDate.value = [];
+      getListHisHappenningToDate.value = [];
+      getListHisCompletedToDate.value = [];
+      final now = Timestamp.now();
+
+      for (int i = 0; i < listTourModel.length; i++) {
+        final startDate = listTourModel[i].startDate;
+        final endDate = listTourModel[i].endDate;
+        if (startDate == null || endDate == null) {
+          debugPrint(
+              '[HISTORY][WARN] Skip tour without dates: ${listTourModel[i].idTour}');
+          continue;
+        }
+
+        if (startDate.millisecondsSinceEpoch > now.millisecondsSinceEpoch) {
+          getListHisUpComingToDate.value?.add(listTourHistorySort[i]);
+          getListUpComing.value?.add(listTourModel[i]);
+        } else if (startDate.millisecondsSinceEpoch <=
+                now.millisecondsSinceEpoch &&
+            endDate.millisecondsSinceEpoch >= now.millisecondsSinceEpoch) {
+          getListHisHappenningToDate.value?.add(listTourHistorySort[i]);
+          getListHisHappenning.value?.add(listTourModel[i]);
+        } else if (startDate.millisecondsSinceEpoch <
+            now.millisecondsSinceEpoch) {
+          getListHisCompletedToDate.value?.add(listTourHistorySort[i]);
+          getListHisCompleted.value?.add(listTourModel[i]);
+        }
+      }
+    } else if (status == 'canceled') {
+      getListHisCancelToDate.value?.clear();
+      getListHisCancelToDate.value = listTourHistorySort;
+    }
+
+    return listTourModel;
+  }
+
+  Future<_HistoryTourPairs> _buildHistoryTourPairs(
+      List<HistoryModel> histories) async {
+    final validHistories = <HistoryModel>[];
+    final tours = <TourModel>[];
+
+    for (final history in histories) {
+      final idTour = history.idTour?.trim();
+      if (idTour == null || idTour.isEmpty) {
+        debugPrint('[HISTORY][WARN] Skip history ${history.id}: empty idTour');
+        continue;
+      }
+
+      final snapShotTour = await _db.collection('tourModel').doc(idTour).get();
+      if (!snapShotTour.exists || snapShotTour.data() == null) {
+        debugPrint(
+            '[HISTORY][WARN] Skip history ${history.id}: tourModel/$idTour not found');
+        continue;
+      }
+
+      tours.add(TourModel.fromJson(snapShotTour));
+      validHistories.add(history);
+    }
+
+    return _HistoryTourPairs(tours: tours, histories: validHistories);
+  }
+
+  Future<void> refreshHistory() async {
+    getAllTourModelData();
+  }
+
+  Future<void> captureAndSaveScreenshot(globalKey) async {
+    Uint8List? screenshotData = await captureScreenshot(globalKey);
+    if (screenshotData != null) {
+      final result = await ImageGallerySaver.saveImage(screenshotData);
+
+      if (result['isSuccess']) {
+        Get.snackbar(
+            '${StringConst.success.tr}!!!', '${StringConst.saveSuccess.tr}!');
+      } else {
+        Get.snackbar('${StringConst.error.tr}!!!', 'fails!');
+      }
+    }
+  }
+
+  saveLocalImage(globalKey) async {
+    RenderRepaintBoundary boundary =
+        globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+    ui.Image image = await boundary.toImage();
+    ByteData? byteData =
+        await (image.toByteData(format: ui.ImageByteFormat.png));
+    if (byteData != null) {
+      try {
+        final result =
+            await ImageGallerySaver.saveImage(byteData.buffer.asUint8List());
+        if (result != null &&
+            result.containsKey('isSuccess') &&
+            result['isSuccess'] == true) {
+          Get.snackbar(
+              '${StringConst.success.tr}!!!', '${StringConst.saveSuccess.tr}!');
+        } else {
+          Get.snackbar(StringConst.error.tr,
+              '${StringConst.saveSuccess.tr}: ${result['errorMessage']}');
+        }
+      } catch (e) {
+        Get.snackbar(StringConst.error.tr, '${StringConst.saveFailed.tr}: $e');
+      }
+    }
+  }
+
+  Future<Uint8List?> captureScreenshot(globalKey) async {
+    try {
+      RenderRepaintBoundary boundary =
+          globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+
+      ui.Image image = await boundary.toImage();
+      ByteData? byteData =
+          await image.toByteData(format: ui.ImageByteFormat.png);
+      Uint8List uint8list = byteData!.buffer.asUint8List();
+      return uint8list;
+    } catch (e) {
+      // print("Error capturing screenshot: $e");
+      return null;
+    }
+  }
+
+  Future<void> updateUserProfile(HistoryModel historyModel) async {
+    await _db
+        .collection('historyModel')
+        .doc(historyModel.id)
+        .update(historyModel.toJson())
+        .then((value) {
+      Get.snackbar("${StringConst.success.tr}!",
+          StringConst.youCanceledTourSuccessfully.tr,
+          snackPosition: SnackPosition.BOTTOM, colorText: Colors.black87);
+      Future.wait([
+        getAllTourModelData(),
+      ]);
+    }).catchError((onError) {
+      Get.snackbar(
+          "${StringConst.error.tr}!!!", '${StringConst.cancelTourError.tr}!!!',
+          snackPosition: SnackPosition.BOTTOM, colorText: Colors.black87);
+    });
+  }
+
+  String timestampToString(Timestamp timestamp) {
+    try {
+      DateTime dateTime = timestamp.toDate();
+
+      String formattedDate = DateFormat('dd-MM-yyyy HH:mm').format(dateTime);
+
+      return formattedDate;
+    } catch (e) {
+      return 'Lỗi: $e';
+    }
+  }
+
+  String timestampToStringStart(Timestamp timestamp) {
+    try {
+      DateTime dateTime = timestamp.toDate();
+
+      String formattedDate = DateFormat('dd-MM').format(dateTime);
+
+      return formattedDate;
+    } catch (e) {
+      return 'Lỗi: $e';
+    }
+  }
+
+  String timestampToStringEnd(Timestamp timestamp) {
+    try {
+      DateTime dateTime = timestamp.toDate();
+
+      String formattedDate = DateFormat('dd-MM-yyyy').format(dateTime);
+
+      return formattedDate;
+    } catch (e) {
+      return 'Lỗi: $e';
+    }
+  }
+
+  void getCurrentHisTab(String status) {
+    if (status == 'waiting') {
+      listTourCurrentTabs.value?.clear();
+      listTourCurrentTabs.value?.addAll(getListHisWaiting.value ?? []);
+      listTourCurrentTabsToDate.value?.clear();
+      listTourCurrentTabsToDate.value
+          ?.addAll(getListHisWaitingToDate.value ?? []);
+    } else if (status == 'coming') {
+      listTourCurrentTabs.value?.clear();
+      listTourCurrentTabs.value?.addAll(getListUpComing.value ?? []);
+      listTourCurrentTabsToDate.value?.clear();
+      listTourCurrentTabsToDate.value
+          ?.addAll(getListHisUpComingToDate.value ?? []);
+    } else if (status == 'happenning') {
+      listTourCurrentTabs.value?.clear();
+      listTourCurrentTabs.value?.addAll(getListHisHappenning.value ?? []);
+      listTourCurrentTabsToDate.value?.clear();
+      listTourCurrentTabsToDate.value
+          ?.addAll(getListHisHappenningToDate.value ?? []);
+    } else if (status == 'completed') {
+      listTourCurrentTabs.value?.clear();
+      listTourCurrentTabs.value?.addAll(getListHisCompleted.value ?? []);
+      listTourCurrentTabsToDate.value?.clear();
+      listTourCurrentTabsToDate.value
+          ?.addAll(getListHisCompletedToDate.value ?? []);
+    } else if (status == 'canceled') {
+      listTourCurrentTabs.value?.clear();
+      listTourCurrentTabs.value?.addAll(getListHisCancel.value ?? []);
+      listTourCurrentTabsToDate.value?.clear();
+      listTourCurrentTabsToDate.value
+          ?.addAll(getListHisCancelToDate.value ?? []);
+    }
+  }
+
+  void indicatorRive() {
+    Future.delayed(
+      const Duration(seconds: 1),
+      () {
+        if (getAllListHistory.value != null &&
+            getAllListHistory.value!.isNotEmpty) {
+          // check?.fire();
+          Future.delayed(const Duration(seconds: 1), () {
+            isShowLoading.value = false;
+          });
+        } else {
+          Future.delayed(const Duration(seconds: 1), () {
+            // error?.fire();
+            isShowLoading.value = false;
+          });
+        }
+      },
+    );
+  }
+
+  void loadIndicatorRive() {
+    isShowLoading.value = true;
+    indicatorRive();
+  }
+
+  List<HistoryModel> sortToursHistoryByBookingDate(
+      List<HistoryModel> historyBooking) {
+    historyBooking.sort((a, b) {
+      if (a.bookingDate == null && b.bookingDate == null) {
+        return 0;
+      } else if (a.bookingDate == null) {
+        return 1;
+      } else if (b.bookingDate == null) {
+        return -1;
+      }
+      return b.bookingDate!.compareTo(a.bookingDate!);
+    });
+
+    return historyBooking;
+  }
+
+  void clearData() {
+    getAllListHistory.value = [];
+    getListHisWaiting.value = [];
+    getListUpComing.value = [];
+    getListHisHappenning.value = [];
+    getListHisCompleted.value = [];
+    getListHisCancel.value = [];
+
+    getAllListHistoryToDate.value = [];
+    getListHisWaitingToDate.value = [];
+    getListHisUpComingToDate.value = [];
+    getListHisHappenningToDate.value = [];
+    getListHisCompletedToDate.value = [];
+    getListHisCancelToDate.value = [];
+
+    listTourCurrentTabs.value = [];
+    listTourCurrentTabsToDate.value = [];
+  }
+}
+
+class _HistoryTourPairs {
+  final List<TourModel> tours;
+  final List<HistoryModel> histories;
+
+  _HistoryTourPairs({
+    required this.tours,
+    required this.histories,
+  });
+}
